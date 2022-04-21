@@ -88,7 +88,9 @@ function MyApp({ Component, pageProps }) {
           }
         </div>
       </nav>
-      <Component {...pageProps} />
+      <AccountContext.Provider value={account}>
+        <Component {...pageProps} connect={connect} />
+      </AccountContext.Provider>
     </div>
   );
 }
