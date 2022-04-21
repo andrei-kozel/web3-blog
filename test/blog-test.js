@@ -1,8 +1,8 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Blog", function () {
-  it("Should create a post", async function () {
+describe("Blog", () => {
+  it("Should create a post", async () => {
     const Blog = await ethers.getContractFactory("Blog");
     const blog = await Blog.deploy("Blog title");
     await blog.deployed();
@@ -14,7 +14,7 @@ describe("Blog", function () {
     expect(posts[0].title).to.equal("First post");
   });
 
-  it("Should edit a post", async function () {
+  it("Should edit a post", async () => {
     const Blog = await ethers.getContractFactory("Blog");
     const blog = await Blog.deploy("Blog title");
     await blog.deployed();
@@ -30,7 +30,7 @@ describe("Blog", function () {
     expect(post[0].title).to.equal("Second post updated title");
   });
 
-  it("Should update blog name", async function () {
+  it("Should update blog name", async () => {
     const Blog = await ethers.getContractFactory("Blog");
     const blog = await Blog.deploy("Blog title");
     await blog.deployed();
