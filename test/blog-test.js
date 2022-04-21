@@ -40,4 +40,20 @@ describe("Blog", function () {
     await blog.updateName("New blog title");
     expect(await blog.name()).to.equal("New blog title");
   });
+
+  it("Should return all posts", async () => {
+    const Blog = await ethers.getContractFactory("Blog");
+    const blog = await Blog.deploy("Blog title");
+    await blog.deployed();
+    await blog.createPost("First post", "This is the some content");
+    await blog.createPost("Second post", "This is the some content");
+    await blog.createPost("Third post", "This is the some content");
+
+    const posts = await blog.fetchPosts();
+
+    expect(posts.length).to.equal(3);
+    expect(posts[0].title).to.equal("First post");
+    expect(posts[1].title).to.equal("Second post");
+    expect(posts[2].title).to.equal("Third post");
+  });
 });
