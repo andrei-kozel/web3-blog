@@ -3,7 +3,7 @@ const fs = require("fs");
 
 async function main() {
   // We get the contract to deploy
-  const Blog = await hre.ethers.getContractFactory("BLog");
+  const Blog = await hre.ethers.getContractFactory("Blog");
   const blog = await Blog.deploy("My blog");
 
   await blog.deployed();
