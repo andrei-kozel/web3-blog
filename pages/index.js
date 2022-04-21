@@ -39,7 +39,6 @@ export default function Home(props) {
                       <Image
                         src="/right-arrow.svg"
                         alt="Right arrow"
-                        className={smallArrow}
                         width="25px"
                         height="25px"
                       />
@@ -76,15 +75,14 @@ export async function getServerSideProps() {
   if (process.env.ENVIRONMENT === "local") {
     provider = new ethers.providers.JsonRpcProvider();
   } else if (process.env.ENVIRONMENT === "testnet") {
-    provider = new ethers.providers.JsonRpcProvider(
-      "https://rpc-mumbai.matic.today"
-    );
+    provider = new ethers.getDefaultProvider("ropsten");
   } else {
     provider = new ethers.providers.JsonRpcProvider("https://polygon-rpc.com/");
   }
 
   const contract = new ethers.Contract(contractAddress, Blog.abi, provider);
   const data = await contract.fetchPosts();
+  console.log(data);
   return {
     props: {
       posts: JSON.parse(JSON.stringify(data)),
