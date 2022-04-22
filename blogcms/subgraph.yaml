@@ -1,0 +1,29 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Blog
+    network: ropsten
+    source:
+      address: "0x6FCacE10783e9768a53f29437Ce07318CeaCEF9f"
+      abi: Blog
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - OwnershipTransferred
+        - PostCreated
+        - PostUpdated
+      abis:
+        - name: Blog
+          file: ./abis/Blog.json
+      eventHandlers:
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: PostCreated(uint256,string,string)
+          handler: handlePostCreated
+        - event: PostUpdated(uint256,string,string,bool)
+          handler: handlePostUpdated
+      file: ./src/mapping.ts
