@@ -1,42 +1,47 @@
 import {
-  OwnershipTransferred as OwnershipTransferredEvent,
   PostCreated as PostCreatedEvent,
   PostUpdated as PostUpdatedEvent
 } from "../generated/Blog/Blog"
 import {
-  OwnershipTransferred,
-  PostCreated,
-  PostUpdated
+  Post
 } from "../generated/schema"
-
-export function handleOwnershipTransferred(
-  event: OwnershipTransferredEvent
-): void {
-  let entity = new OwnershipTransferred(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.previousOwner = event.params.previousOwner
-  entity.newOwner = event.params.newOwner
-  entity.save()
-}
+import { ipfs, json } from '@graphprotocol/graph-ts'
 
 export function handlePostCreated(event: PostCreatedEvent): void {
-  let entity = new PostCreated(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.id = event.params.id
-  entity.title = event.params.title
-  entity.hash = event.params.hash
-  entity.save()
+  let post = new Post(event.params.id.toString());
+  post.title = event.params.title;
+  post.contentHash = event.params.hash;
+  let data = ipfs.cat(event.params.hash);
+  if (data) {
+    let value = json.fromBytes(data).toObject()
+    if (value) {
+      const content = value.get('content')
+      if (content) {
+        post.postContent = content.toString()
+      }
+    }
+  }
+  post.createdAtTimestamp = event.block.timestamp;
+  post.save()
 }
 
 export function handlePostUpdated(event: PostUpdatedEvent): void {
-  let entity = new PostUpdated(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.id = event.params.id
-  entity.title = event.params.title
-  entity.hash = event.params.hash
-  entity.published = event.params.published
-  entity.save()
+  let post = Post.load(event.params.id.toString());
+  if (post) {
+    post.title = event.params.title;
+    post.contentHash = event.params.hash;
+    post.published = event.params.published;
+    let data = ipfs.cat(event.params.hash);
+    if (data) {
+      let value = json.fromBytes(data).toObject()
+      if (value) {
+        const content = value.get('content')
+        if (content) {
+          post.postContent = content.toString()
+        }
+      }
+    }
+    post.updatedAtTimestamp = event.block.timestamp;
+    post.save()
+  }
 }
