@@ -2,20 +2,26 @@
 import { css } from "@emotion/css";
 import { useContext } from "react";
 import { useRouter } from "next/router";
-import { ethers } from "ethers";
 import Link from "next/link";
 import { AccountContext } from "../context";
-
-/* import contract address and contract owner address */
-import { contractAddress, ownerAddress } from "../config";
-
-/* import Application Binary Interface (ABI) */
-import Blog from "../artifacts/contracts/Blog.sol/Blog.json";
+import { gql } from "@apollo/client";
+import client from "../apollo-client";
 import Image from "next/image";
 
+const queryGetAllPosts = gql`
+  query {
+    posts {
+      id
+      title
+      contentHash
+      published
+    }
+  }
+`;
+
+import { ownerAddress } from "../config";
+
 export default function Home(props) {
-  /* posts are fetched server side and passed in as props */
-  /* see getServerSideProps */
   const { posts } = props;
   const account = useContext(AccountContext);
 
@@ -31,10 +37,10 @@ export default function Home(props) {
           /* map over the posts array and render a button with the post title */
           posts &&
             posts.map((post, index) => (
-              <Link href={`/post/${post[2]}`} key={index}>
+              <Link href={`/post/${post.contentHash}`} key={index}>
                 <a>
                   <div className={linkStyle}>
-                    <p className={postTitle}>{post[1]}</p>
+                    <p className={postTitle}>{post.title}</p>
                     <div className={arrowContainer}>
                       <Image
                         src="/right-arrow.svg"
@@ -51,8 +57,6 @@ export default function Home(props) {
       </div>
       <div className={container}>
         {account === ownerAddress && posts && !posts.length && (
-          /* if the signed in user is the account owner, render a button */
-          /* to create the first post */
           <button className={buttonStyle} onClick={navigate}>
             Create your first post
             <Image
@@ -68,23 +72,12 @@ export default function Home(props) {
   );
 }
 
-export async function getServerSideProps() {
-  /* here we check to see the current environment variable */
-  /* and render a provider based on the environment we're in */
-  let provider;
-  if (process.env.ENVIRONMENT === "local") {
-    provider = new ethers.providers.JsonRpcProvider();
-  } else if (process.env.ENVIRONMENT === "testnet") {
-    provider = new ethers.getDefaultProvider("ropsten");
-  } else {
-    provider = new ethers.providers.JsonRpcProvider("https://polygon-rpc.com/");
-  }
+export async function getStaticProps() {
+  const { data } = await client.query({ query: queryGetAllPosts });
 
-  const contract = new ethers.Contract(contractAddress, Blog.abi, provider);
-  const data = await contract.fetchPosts();
   return {
     props: {
-      posts: JSON.parse(JSON.stringify(data)),
+      posts: data.posts,
     },
   };
 }
